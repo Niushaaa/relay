@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Web3 from 'web3';
 import './App.css';
-import Ethbay from '../abis/Ethbay'
+import Ethbay from '../abis/Relay'
 import Addressbar from './Addressbar'
 import Main from './Main'
 
