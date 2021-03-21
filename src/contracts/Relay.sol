@@ -21,15 +21,19 @@ contract Relay {
     }
 
     struct blockHeader{
-        uint parentHash;
+        bytes32 parentHash;
         bytes32 stateRoot;
         bytes32 txRoot;
         bytes32 receiptRoot;
+        bytes32 difficulty;
+        bytes32 height;
+        bytes32 nonce;
+        bytes32 hash;
         bool finalized; // finalized is True, if the block header is finalized in the received chain
     }
 
     mapping (uint256 => mapping (uint256 => blockHeader)) public chain;
-    mapping (uint => uint) public show;
+    mapping (uint => bytes32) public show;
 
     // constructor (uint256 genesisBlock) public {
     constructor () public {
@@ -44,20 +48,29 @@ contract Relay {
         
         while (item.hasNext()) {
             if (idx == 0) {
-                header.parentHash = item.next().toUint();
+                header.parentHash = bytes32(item.next().toUint());
+                show[idx] = header.parentHash;
             } else if (idx == 3) {
                 header.stateRoot = bytes32(item.next().toUint());
+                show[idx] = header.stateRoot;
             } else if (idx == 4) {
                 header.txRoot = bytes32(item.next().toUint());
+                show[idx] = header.txRoot;
             } else if (idx == 5) {
                 header.receiptRoot = bytes32(item.next().toUint());
-            } else if (idx == 8) {
-                header.difficulty = item.next().toUint();
-            else if (idx == 9) {
-                number = item.next().toUint();
-            }    
-            } else if (idx == 15) {
-                header.nonce = item.next().toUint();
+                show[idx] = header.receiptRoot;
+            } else if (idx == 7) {
+                header.difficulty = bytes32(item.next().toUint());
+                show[idx] = header.difficulty;
+            }else if (idx == 8) {
+                header.height = bytes32(item.next().toUint());
+                show[idx] = header.height;
+            } else if (idx == 14) {
+                header.nonce = bytes32(item.next().toUint());
+                show[idx] = header.nonce;
+            } else if (idx == 13) {
+                header.hash = bytes32(item.next().toUint());
+                show[idx] = header.hash;
             }
             else{
                 item.next();
