@@ -10,7 +10,9 @@ contract Relay {
     using RLPReader for bytes;
     
     address public owner = msg.sender;
-
+    
+    uint public k;
+    uint public lastHeight;
 
     modifier restricted() {
         require(
@@ -29,6 +31,7 @@ contract Relay {
         bytes32 height;
         bytes32 nonce;
         bytes32 hash;
+        uint parentIdx; // parent index in the chain
         bool finalized; // finalized is True, if the block header is finalized in the received chain
     }
 
@@ -37,6 +40,8 @@ contract Relay {
 
     // constructor (uint256 genesisBlock) public {
     constructor () public {
+        k = 6; // finality parameter
+        lastHeight = 0;
     }
     
     function parseBlockHeader(bytes memory rawHeader) public{
@@ -77,19 +82,37 @@ contract Relay {
             }
             idx++;
         }
-        //check nonce with difficulty
+        
+        uint parentIdx;
+        parentIdx = validateBlockHeader(header);
+        header.parentIdx = parentIdx;
+        addToChain(header, parentIdx);
+        if (header.height > lastHeight) {
+            lastHeight = header.height;
+            pruneChain();
+        }
     }
     
-    // function submitBlockHeader(blockHeader) internal returns(bool){
-    //     return submitted;
-    // }
-    // function validateBlockHeader(blockHeader) internal returns(bool) {
-    //     return isValid;
-    // }
+    function validateBlockHeader(blockHeader) internal returns(bool) {
+        require(blockHeader.height >= lastHeight - k);
+        uint parentIdx;
+        parentIdx = parentExists(blockHeader);
+        require(parentIdx == -1, 'parent does not exist');
+        require(PoWisDone(blockHeader), 'Wrong PoW');
+        return parentIdx;
+    }
+    
+    function addToChain(blockHeader) internal returns(bool) {
+        //add the valid BH to the chain
+        return true;
+    }
 
-    // function parentExists(blockHeader) internal returns(uint256) {
-    //     return parentIndex; //parent index in previous height of the target block header
-    // }
+    function PoWisDone(blockHeader) internal returns(bool) {
+        return isDone;
+    }
+    function parentExists(blockHeader) internal returns(uint) {
+        return parentIndex; //parent index in previous height of the target block header, not exist = -1
+    }
     function pruneChain() internal {
 
     }
