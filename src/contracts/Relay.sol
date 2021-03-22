@@ -28,9 +28,9 @@ contract Relay {
         bytes32 txRoot;
         bytes32 receiptRoot;
         bytes32 difficulty;
-        bytes32 height;
+        uint height;
         bytes32 nonce;
-        bytes32 hash;
+        bytes32 selfHash;
         uint parentIdx; // parent index in the chain
         bool finalized; // finalized is True, if the block header is finalized in the received chain
     }
@@ -102,16 +102,18 @@ contract Relay {
         return parentIdx;
     }
     
-    function addToChain(blockHeader) internal returns(bool) {
+    function addToChain(blockHeader ) internal returns(bool) {
         //add the valid BH to the chain
         return true;
     }
 
-    function PoWisDone(blockHeader) internal returns(bool) {
+    function PoWisDone(blockHeader header) internal returns(bool) {
+        
         return isDone;
     }
-    function parentExists(blockHeader) internal returns(uint) {
-        return parentIndex; //parent index in previous height of the target block header, not exist = -1
+    function parentExists(blockHeader header, uint parentIdx) internal returns(uint) {
+        require(chain[header.height-1][parentIdx].selfHash = header.parentHash, "parent doesn't exist");
+        return parentIndex;
     }
     function pruneChain() internal {
 
