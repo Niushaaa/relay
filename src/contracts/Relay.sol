@@ -1,6 +1,6 @@
 pragma solidity 0.7.6;
 
-// import "./MerklePatriciaProof.sol";
+import "./MerklePatriciaProof.sol";
 import "./RLPReader.sol";
 
 contract Relay {
@@ -83,14 +83,14 @@ contract Relay {
             idx++;
         }
         
-        uint parentIdx;
-        parentIdx = validateBlockHeader(header);
+        uint parentIdx = validateBlockHeader(header);
         header.parentIdx = parentIdx;
         addToChain(header, parentIdx);
         if (header.height > lastHeight) {
             lastHeight = header.height;
             pruneChain();
         }
+        sendReward(msg.sender);
     }
     
     function validateBlockHeader(blockHeader) internal returns(bool) {
@@ -119,7 +119,28 @@ contract Relay {
     function sendReward(address) internal {
         // call ERC20 token contract to transfer reward tokens to the relayer
     }
-    // function checkInclusionProof(bytes value, bytes encodedPath, bytes parentNodes, bytes32 root) constant internal returns(bool) {
-    //     return MerklePatriciaProof.verify(value, encodedPath, parentNodes, root);
-    // }
+    
+    function checkTxProof(bytes value, uint blockHeight, bytes path, bytes parentNodes) public returns (bool) {
+        // add fee for checking transaction
+        require(blockHeight < lastHeight - k);
+        bytes32 txRoot = chain[blockHeight].txRoot;
+        // TxRootEvent(txRoot);
+        return checkInclusionProof(value, path, parentNodes, txRoot);
+    }
+
+    function checkStateProof(bytes value, uint blockHeight, bytes path, bytes parentNodes) public returns (bool) {
+        require(blockHeight < lastHeight - k);
+        bytes32 stateRoot = chain[blockHeight].stateRoot;
+        return checkInclusionProof(value, path, parentNodes, stateRoot);
+    }
+
+    function checkReceiptProof(bytes value, uint blockHeight, bytes path, bytes parentNodes) public returns (bool) {
+        require(blockHeight < lastHeight - k);
+        bytes32 receiptRoot = chain[blockHeight].receiptRoot;
+        return checkInclusionProof(value, path, parentNodes, receiptRoot);
+    }
+  
+    function checkInclusionProof(bytes value, bytes encodedPath, bytes parentNodes, bytes32 root) internal returns(bool) {
+        return MerklePatriciaProof.verify(value, encodedPath, parentNodes, root);
+    }
 }
