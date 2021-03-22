@@ -134,6 +134,7 @@ contract Relay {
             idx++;
         }
     }
+    }
     function sendReward(address) internal {
         // call ERC20 token contract to transfer reward tokens to the relayer
     }
@@ -141,7 +142,7 @@ contract Relay {
     function checkTxProof(bytes value, uint blockHeight, bytes path, bytes parentNodes) public returns (bool) {
         // add fee for checking transaction
         require(blockHeight < lastHeight - k);
-        bytes32 txRoot = chain[blockHeight].txRoot;
+        bytes32 txRoot = chain[blockHeight][0].txRoot;
         // TxRootEvent(txRoot);
         return checkInclusionProof(value, path, parentNodes, txRoot);
     }
@@ -158,7 +159,12 @@ contract Relay {
         return checkInclusionProof(value, path, parentNodes, receiptRoot);
     }
   
-    function checkInclusionProof(bytes value, bytes encodedPath, bytes parentNodes, bytes32 root) internal returns(bool) {
-        return MerklePatriciaProof.verify(value, encodedPath, parentNodes, root);
+    function checkInclusionProof(bytes32 rootHash, bytes memory mptKey, RLPReader.RLPItem[] memory stack) internal returns(bool) {
+        bytes MPTProof;
+        MPTProof = MerklePatriciaProof.validateMPTProof(rootHash, mptKey, stack);
+        if (MPTProof.length == 0) {
+            return false;
+        }
+        return true; 
     }
 }
