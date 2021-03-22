@@ -35,7 +35,7 @@ contract Relay {
         bool finalized; // finalized is True, if the block header is finalized in the received chain
     }
 
-    mapping (uint256 => mapping (uint256 => blockHeader)) public chain;
+    mapping (uint => mapping (uint => blockHeader)) public chain;
     mapping (uint => bytes32) public show;
 
     // constructor (uint256 genesisBlock) public {
@@ -44,7 +44,7 @@ contract Relay {
         lastHeight = 0;
     }
     
-    function parseBlockHeader(bytes memory rawHeader) public{
+    function parseBlockHeader(bytes memory rawHeader, uint parentIdx) public{
         //first we enter this function
         blockHeader memory header;
         RLPReader.Iterator memory item = rawHeader.toRlpItem().iterator();
@@ -74,8 +74,8 @@ contract Relay {
                 header.nonce = bytes32(item.next().toUint());
                 show[idx] = header.nonce;
             } else if (idx == 13) {
-                header.hash = bytes32(item.next().toUint());
-                show[idx] = header.hash;
+                header.selfHash = bytes32(item.next().toUint());
+                show[idx] = header.selfHash;
             }
             else{
                 item.next();
@@ -83,9 +83,9 @@ contract Relay {
             idx++;
         }
         
-        uint parentIdx = validateBlockHeader(header);
-        header.parentIdx = parentIdx;
-        addToChain(header, parentIdx);
+        uint validParentIdx = validateBlockHeader(header, parentIdx);
+        header.parentIdx = validParentIdx;
+        addToChain(header, validParentIdx);
         if (header.height > lastHeight) {
             lastHeight = header.height;
             pruneChain();
@@ -93,17 +93,15 @@ contract Relay {
         sendReward(msg.sender);
     }
     
-    function validateBlockHeader(blockHeader) internal returns(bool) {
-        require(blockHeader.height >= lastHeight - k);
-        uint parentIdx;
-        parentIdx = parentExists(blockHeader);
-        require(parentIdx == -1, 'parent does not exist');
-        require(PoWisDone(blockHeader), 'Wrong PoW');
+    function validateBlockHeader(blockHeader header, uint parentIdx) internal returns(bool) {
+        require(header.height >= lastHeight - k);
+        parentIdx = parentExists(header, parentIdx);
+        require(PoWisDone(header), 'Wrong PoW');
         return parentIdx;
     }
     
-    function addToChain(blockHeader) internal returns(bool) {
-        //add the valid BH to the chain
+    function addToChain(blockHeader header, uint validParentIdx) internal returns(bool) {
+        chain[header.height]
         return true;
     }
 
