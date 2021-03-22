@@ -67,7 +67,7 @@ contract Relay {
             } else if (idx == 7) {
                 header.difficulty = bytes32(item.next().toUint());
                 show[idx] = header.difficulty;
-            }else if (idx == 8) {
+            } else if (idx == 8) {
                 header.height = bytes32(item.next().toUint());
                 show[idx] = header.height;
             } else if (idx == 14) {
@@ -85,11 +85,7 @@ contract Relay {
         
         uint validParentIdx = validateBlockHeader(header, parentIdx);
         header.parentIdx = validParentIdx;
-        addToChain(header, validParentIdx);
-        if (header.height > lastHeight) {
-            lastHeight = header.height;
-            pruneChain();
-        }
+        addToChain(header);
         sendReward(msg.sender);
     }
     
@@ -100,9 +96,14 @@ contract Relay {
         return parentIdx;
     }
     
-    function addToChain(blockHeader header, uint validParentIdx) internal returns(bool) {
-        chain[header.height]
-        return true;
+    function addToChain(blockHeader header) internal {
+        if(header.height <= lastHeight){
+            chain[header.height].append(header); //TODO: check if append works correctly
+        }else{
+            chain[header.height][0] = header;
+            lastHeight++;
+            pruneChain();
+        }
     }
 
     function PoWisDone(blockHeader header) internal returns(bool) {
@@ -114,7 +115,24 @@ contract Relay {
         return parentIndex;
     }
     function pruneChain() internal {
-
+        uint idx = k;
+        uint currentHeight = lastHeight;
+        uint stableIdx;
+        while (idx) {
+            stableIdx = chain[currentHeight].parentIdx;
+            idx--;
+            currentHeight--;
+        }
+        blockHeader stableHeader = chain[currentHeight][stableIdx];
+        deleteHeight(currentHeight);
+        chain[currentHeight][0] = stableHeader;
+    }
+    function deleteHeight(uint height) internal {
+        uint idx = 0;
+        while(chain[height][idx]){
+            delete chain[height][idx]; //TODO: check if it works adn is set to 0 and 0 is considered false
+            idx++;
+        }
     }
     function sendReward(address) internal {
         // call ERC20 token contract to transfer reward tokens to the relayer
