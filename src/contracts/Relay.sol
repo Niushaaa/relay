@@ -27,10 +27,11 @@ contract Relay {
         bytes32 stateRoot;
         bytes32 txRoot;
         bytes32 receiptRoot;
-        bytes32 difficulty;
+        uint difficulty;
         uint height;
-        bytes32 nonce;
+        uint nonce;
         bytes32 selfHash;
+        bytes32 hashWithoutNonce;
         uint parentIdx; // parent index in the chain
         bool finalized; // finalized is True, if the block header is finalized in the received chain
     }
@@ -44,7 +45,8 @@ contract Relay {
         lastHeight = 0;
     }
     
-    function parseBlockHeader(bytes memory rawHeader, uint parentIdx) public{
+    function parseBlockHeader(bytes memory rawHeader, uint parentIdx, 
+    uint[] calldata dataSetLookup, uint[] calldata witnessForLookup) public{
         //first we enter this function
         blockHeader memory header;
         RLPReader.Iterator memory item = rawHeader.toRlpItem().iterator();
@@ -65,14 +67,20 @@ contract Relay {
                 header.receiptRoot = bytes32(item.next().toUint());
                 show[idx] = header.receiptRoot;
             } else if (idx == 7) {
-                header.difficulty = bytes32(item.next().toUint());
-                show[idx] = header.difficulty;
+                //header.difficulty = bytes32(item.next().toUint());
+                //show[idx] = header.difficulty;
+                header.difficulty = item.next().toUint();
+                show[idx] = bytes32(header.difficulty);
             } else if (idx == 8) {
-                header.height = bytes32(item.next().toUint());
-                show[idx] = header.height;
+                //header.height = bytes32(item.next().toUint());
+                //show[idx] = header.height;
+                header.height = item.next().toUint();
+                show[idx] = bytes32(header.height);
             } else if (idx == 14) {
-                header.nonce = bytes32(item.next().toUint());
-                show[idx] = header.nonce;
+                //header.nonce = bytes32(item.next().toUint());
+                //show[idx] = header.nonce;
+                header.nonce = item.next().toUint();
+                show[idx] = bytes32(header.nonce);
             } else if (idx == 13) {
                 header.selfHash = bytes32(item.next().toUint());
                 show[idx] = header.selfHash;
@@ -83,16 +91,18 @@ contract Relay {
             idx++;
         }
         
-        uint validParentIdx = validateBlockHeader(header, parentIdx);
+        uint validParentIdx = validateBlockHeader(header, parentIdx, dataSetLookup, witnessForLookup);
         header.parentIdx = validParentIdx;
+        header.hashWithoutNonce = getRlpHeaderHashWithoutNonce(rawHeader)
         addToChain(header);
         sendReward(msg.sender);
     }
     
-    function validateBlockHeader(blockHeader header, uint parentIdx) internal returns(bool) {
+    function validateBlockHeader(blockHeader header, uint parentIdx, 
+    uint[] calldata dataSetLookup, uint[] calldata witnessForLookup) internal returns(bool) {
         require(header.height >= lastHeight - k);
         parentIdx = parentExists(header, parentIdx);
-        require(PoWisDone(header), 'Wrong PoW');
+        require(PoWisDone(header, dataSetLookup, witnessForLookup), 'Wrong PoW');
         return parentIdx;
     }
     
@@ -106,14 +116,41 @@ contract Relay {
         }
     }
 
-    function PoWisDone(blockHeader header) internal returns(bool) {
+    function PoWisDone(blockHeader header, uint[] calldata dataSetLookup, uint[] calldata witnessForLookup) internal returns(bool) {
+
+        blockNumber = header.height;
+        nonce = header.nonce;
+        difficulty = header.difficulty;
+        rlpHeaderHashWithoutNonce = header.hashWithoutNonce;
+        //dataSetLookup contains elements of the DAG needed for the PoW verification
+        //witnessForLookup needed for verifying the dataSetLookup
+
+        //(uint, bytes32, uint, difficulty, uint[] calldata, uint[] calldata) returns (uint, uint);
+        (returnCode, errorInfo) = ethash.verifyPoW(blockNumber, rlpHeaderHashWithoutNonce, nonce, difficulty,
+        dataSetLookup, witnessForLookup);
         
-        return isDone;
+        if (returnCode == 0){
+            return true;
+        }
+        return false;
     }
+
+    function getRlpHeaderHashWithoutNonce(bytes memory rawHeader){
+        // duplicate rlp header and truncate nonce and mixDataHash
+        bytes memory rlpWithoutNonce = copy(rawHeader, rawHeader.length-42);  // 42: length of none+mixHash
+        uint16 rlpHeaderWithoutNonceLength = uint16(rawHeader.length-3-42);  // rlpHeaderLength - 3 prefix bytes (0xf9 + length) - length of nonce and mixHash
+        bytes2 headerLengthBytes = bytes2(rlpHeaderWithoutNonceLength);
+        rlpWithoutNonce[1] = headerLengthBytes[0];
+        rlpWithoutNonce[2] = headerLengthBytes[1];
+
+        return keccak256(rlpWithoutNonce);       
+    }
+
     function parentExists(blockHeader header, uint parentIdx) internal returns(uint) {
         require(chain[header.height-1][parentIdx].selfHash = header.parentHash, "parent doesn't exist");
         return parentIndex;
     }
+
     function pruneChain() internal {
         uint idx = k;
         uint currentHeight = lastHeight;
@@ -127,6 +164,7 @@ contract Relay {
         deleteHeight(currentHeight);
         chain[currentHeight][0] = stableHeader;
     }
+
     function deleteHeight(uint height) internal {
         uint idx = 0;
         while(chain[height][idx]){
@@ -134,37 +172,38 @@ contract Relay {
             idx++;
         }
     }
-    }
-    function sendReward(address) internal {
+    
+    function sendReward(address relayerAddress) internal {
+
         // call ERC20 token contract to transfer reward tokens to the relayer
     }
     
-    function checkTxProof(bytes value, uint blockHeight, bytes path, bytes parentNodes) public returns (bool) {
+    function checkTxProof(uint blockHeight, bytes memory mptKey, RLPReader.RLPItem[] memory stack) public returns (bool) {
         // add fee for checking transaction
-        require(blockHeight < lastHeight - k);
+        require(blockHeight < lastHeight - k); // require the block to be finilized 
         bytes32 txRoot = chain[blockHeight][0].txRoot;
         // TxRootEvent(txRoot);
-        return checkInclusionProof(value, path, parentNodes, txRoot);
+        return checkInclusionProof(value, encodedPath, rlpParentNodes, txRoot);
     }
 
     function checkStateProof(bytes value, uint blockHeight, bytes path, bytes parentNodes) public returns (bool) {
-        require(blockHeight < lastHeight - k);
-        bytes32 stateRoot = chain[blockHeight].stateRoot;
-        return checkInclusionProof(value, path, parentNodes, stateRoot);
+        require(blockHeight < lastHeight - k); // require the block to be finilized 
+        bytes32 stateRoot = chain[blockHeight][0].stateRoot;
+        return checkInclusionProof(value, encodedPath, rlpParentNodes, stateRoot);
     }
 
     function checkReceiptProof(bytes value, uint blockHeight, bytes path, bytes parentNodes) public returns (bool) {
-        require(blockHeight < lastHeight - k);
-        bytes32 receiptRoot = chain[blockHeight].receiptRoot;
-        return checkInclusionProof(value, path, parentNodes, receiptRoot);
+        require(blockHeight < lastHeight - k); // require the block to be finilized 
+        bytes32 receiptRoot = chain[blockHeight][0].receiptRoot;
+        return checkInclusionProof(value, encodedPath, rlpParentNodes, receiptRoot);
     }
   
-    function checkInclusionProof(bytes32 rootHash, bytes memory mptKey, RLPReader.RLPItem[] memory stack) internal returns(bool) {
-        bytes MPTProof;
-        MPTProof = MerklePatriciaProof.validateMPTProof(rootHash, mptKey, stack);
-        if (MPTProof.length == 0) {
-            return false;
-        }
-        return true; 
+    function checkInclusionProof(bytes memory value, bytes memory encodedPath, bytes memory rlpParentNodes, bytes32 root) internal returns(bool) {
+         uint result;
+         result = MerklePatriciaProof.verify(value, encodedPath, rlpParentNodes, root);
+         if (result == 0){
+             return true;
+         }
+         return false;
     }
 }
