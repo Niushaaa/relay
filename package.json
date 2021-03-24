@@ -9,6 +9,7 @@
     "chai": "^4.3.0",
     "chai-as-promised": "^7.1.1",
     "ethereumjs-block": "^2.2.2",
+    "ethereumjs-testrpc": "^6.0.3",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-scripts": "4.0.3",
