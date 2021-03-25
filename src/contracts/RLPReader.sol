@@ -165,7 +165,8 @@ library RLPReader {
     }
 
     function toUint(RLPItem memory item) internal pure returns (uint) {
-        require(item.len > 0 && item.len <= 33);
+        require(item.len > 0, "short");
+        require(item.len <= 33, "long");
 
         uint offset = _payloadOffset(item.memPtr);
         uint len = item.len - offset;
