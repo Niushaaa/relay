@@ -232,4 +232,8 @@ contract Relay {
          }
          return false;
     }
+
+    function getParentArray(uint height) returns (blockHeader[]){
+        return chain[height - 1];
+    }
 }
