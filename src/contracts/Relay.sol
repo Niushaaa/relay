@@ -2,14 +2,14 @@ pragma solidity 0.7.6;
 
 import "./MerklePatriciaProof.sol";
 import "./RLPReader.sol";
-import "./ethash.sol";
+// import "./ethash.sol";
 
 contract Relay {
 
     using RLPReader for RLPReader.RLPItem;
     using RLPReader for RLPReader.Iterator;
     using RLPReader for bytes;
-    Ethash public myEthash;
+    // Ethash public myEthash;
     
     address public owner = msg.sender;
     
@@ -40,8 +40,9 @@ contract Relay {
 
     mapping (uint => blockHeader[]) public chain;
 
-    constructor (Ethash _myEthash, bytes32 _selfHash, uint _height) public {
-        myEthash = _myEthash;
+    // constructor (Ethash _myEthash, bytes32 _selfHash, uint _height) public {
+    constructor (bytes32 _selfHash, uint _height) public {
+        // myEthash = _myEthash;
         k = 6; // finality parameter
         lastHeight = _height;
         initialHeight = _height;
@@ -233,7 +234,7 @@ contract Relay {
          return false;
     }
 
-    function getParentArray(uint height) returns (blockHeader[]){
-        return chain[height - 1];
+    function getParentIdxNum(uint height) public returns (uint){
+        return chain[height - 1].length;
     }
 }
