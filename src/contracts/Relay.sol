@@ -119,7 +119,6 @@ contract Relay {
         chain[header.height].push(header);
         
         if((header.height) > lastHeight){
-            chain[header.height].push(header);
             lastHeight++;
             pruneChain();
         }
@@ -176,28 +175,30 @@ contract Relay {
     }
 
     function pruneChain() internal {
-        if ((lastHeight - initialHeight) > k){
+        if ((lastHeight - initialHeight) >= k){
             uint idx = k;
             uint currentHeight = lastHeight;
             uint stableIdx = 0;
-            while (idx != 0) {
+            while (idx > 0) {
                 stableIdx = chain[currentHeight][stableIdx].parentIdx;
                 idx--;
                 currentHeight--;
             }
-            blockHeader memory stableHeader = chain[currentHeight][stableIdx];
-            deleteHeight(currentHeight);
-            chain[currentHeight][0] = stableHeader;
+            chain[currentHeight][0] = chain[currentHeight][stableIdx];
+            // blockHeader memory stableHeader = chain[currentHeight][stableIdx];
+            if(chain[currentHeight].length > 1){
+                deleteHeight(currentHeight);
+            }
         }
     }
 
     function deleteHeight(uint height) internal {
-        uint idx = 0;
-        // while(chain[height][idx]){
-        //     delete chain[height][idx]; //TODO: check if it works adn is set to 0 and 0 is considered false
-        //     idx++;
-        // }
-        delete chain[height];
+        uint idx = 1;
+        while(idx < chain[height].length){
+            delete chain[height][idx];
+            idx++;
+        }
+        // delete chain[height];
     }
     
     function sendReward(address relayerAddress) internal {
