@@ -105,11 +105,11 @@ class GetProof{
   }
 }
 
-async function main(){
+async function main(SOURCE_HTTPS, TX_HASH){
 	let getProof = new GetProof(SOURCE_HTTPS);
-	console.log(await getProof.transactionProof(TX_HASH));
+	return(await getProof.transactionProof(TX_HASH));
 }
 
-main();
+exports.main = main;
 
 
