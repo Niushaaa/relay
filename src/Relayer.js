@@ -20,6 +20,7 @@ async function start(blockNumber) {
 	var flag = 0;
     var _block = await getBlockHeader(blockNumber);
     var block = new EthereumBlock(_block)
+
     var EncodedBlock = getRlpEncodedBlockHeader(block)
     
     const accounts = await web3_target.eth.getAccounts();
