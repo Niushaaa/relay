@@ -9,7 +9,7 @@ async function start() {
     _block = await web3.eth.getBlock('24044589')
     var block = new EthereumBlock(_block)
     console.log('0x' + rlp.encode(block.header.raw).toString('hex'))
-    console.log(_block)
+    console.log(block)
 }
 
 start();

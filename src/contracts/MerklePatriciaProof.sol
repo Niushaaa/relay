@@ -17,7 +17,10 @@ library MerklePatriciaProof {
      * @param root The root hash of the trie.
      * @return return code indicating result. Return code 0 indicates a positive verification
      */
-    function verify(bytes memory value, bytes memory encodedPath, bytes memory rlpParentNodes, bytes32 root) internal pure returns (uint) {
+    event Values(bytes32 nodekey, bytes32 keccak256ofcurrentNode);
+    event Nodes(bytes32 nodekey);
+    
+    function verify(bytes memory value, bytes memory encodedPath, bytes memory rlpParentNodes, bytes32 root) internal returns (uint) {
         RLPReader.RLPItem memory item = RLPReader.toRlpItem(rlpParentNodes);
 
         // list of the rlp encoded proof nodes
@@ -35,29 +38,34 @@ library MerklePatriciaProof {
 
         // [8, 1, 8, 8]
         bytes memory path = _getNibbleArray(encodedPath);
-
+        
+        
         // path is empty - this is equal as
         if (path.length == 0) { return (1); }
 
         // iterate all the rlp encoded nodes in the proof
         for (uint i = 0; i < parentNodes.length; i++) {
-
             // the actual path is longer than the given path - key not found
             if (pathPtr > path.length) { return (2); }
 
             // next node in the proof is read
             currentNode = RLPReader.toBytes(parentNodes[i]);
-
+            
+            
             // the hash of the current-node does not represent the desired nodeKey, this is especially the case at the
             // beginning of the proof where the transactionRootHash is verified
-            if (nodeKey != keccak256(currentNode)) { return (3); }
-
+            if (nodeKey != keccak256(currentNode)) {
+                emit Values(nodeKey, keccak256(currentNode));
+                return (1000+i);
+            } 
+            
             // the proof-node is transformed into the byte-array containing key/value/branch nodes depending on the type of the proof node
-            currentNodeList = RLPReader.toList(RLPReader.toRlpItem(currentNode));
-
+            RLPReader.RLPItem memory parentItem = RLPReader.toRlpItem(currentNode);
+            currentNodeList = RLPReader.toList(parentItem);
+            
             if (currentNodeList.length == 17) {
                 // branch node
-
+                
                 // we reached at the given level
                 if (pathPtr == path.length) {
                     if (keccak256(RLPReader.toBytes(currentNodeList[16])) == keccak256(value)) {
@@ -66,7 +74,7 @@ library MerklePatriciaProof {
                         return (4);
                     }
                 }
-
+                
                 uint8 nextPathNibble = uint8(path[pathPtr]);
 
                 if (nextPathNibble > 16) {
