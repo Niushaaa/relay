@@ -239,7 +239,7 @@ contract Relay {
         return chain[height - 1].length;
     }
 
-    function paresTransactionAmount (bytes memory rawData) public returns(uint256){
+    function parseTransactionAmount (bytes memory rawData) public returns(uint256){
         bytes memory transactionData = parseRLP(rawData);
         return parseAmount(transactionData);
     }

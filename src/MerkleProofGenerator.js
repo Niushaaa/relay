@@ -105,11 +105,11 @@ class GetProof{
   }
 }
 
-async function main(SOURCE_HTTPS, TX_HASH){
+async function MerkleProofGenerator(SOURCE_HTTPS, TX_HASH){
 	let getProof = new GetProof(SOURCE_HTTPS);
 	return(await getProof.transactionProof(TX_HASH));
 }
 
-exports.main = main;
+exports.MerkleProofGenerator = MerkleProofGenerator;
 
 
