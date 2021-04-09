@@ -238,4 +238,32 @@ contract Relay {
     function getParentIdxNum(uint height) public returns (uint){
         return chain[height - 1].length;
     }
+
+    function paresTransactionAmount (bytes memory rawData) public returns(uint256){
+        bytes memory transactionData = parseRLP(rawData);
+        return parseAmount(transactionData);
+    }
+    
+    function parseRLP(bytes memory rlpData) internal returns(bytes memory){
+        //first we enter this function
+        RLPReader.Iterator memory item = rlpData.toRlpItem().iterator();
+        uint idx;
+        idx = 0;
+        
+        while (item.hasNext()) {
+            test[idx] = item.next().toBytes();
+            testKeck[idx] = keccak256(test[idx]);
+            idx++;
+        }
+        
+        return test[5];
+    }
+    
+    function parseAmount(bytes memory data) internal returns(uint256) {
+        uint256 parsedValue;
+        assembly {
+    	    parsedValue := mload(add(data, 68))
+        }
+        return parsedValue;
+    }
 }
