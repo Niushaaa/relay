@@ -206,6 +206,10 @@ contract Relay {
         // call ERC20 token contract to transfer reward tokens to the relayer
     }
     
+    function salam() public {
+        
+    }
+    
     function checkTxProof(bytes memory value, uint blockHeight, bytes memory encodedPath, bytes memory rlpParentNodes) public returns (bool) {
         // add fee for checking transaction
         require(blockHeight < lastHeight - k, "Block is not finilized yet"); // require the block to be finilized 
@@ -245,24 +249,17 @@ contract Relay {
     }
     
     function parseRLP(bytes memory rlpData) internal returns(bytes memory){
-        //first we enter this function
-        RLPReader.Iterator memory item = rlpData.toRlpItem().iterator();
+        RLPReader.RLPItem memory item = rlpData.toRlpItem();
         uint idx;
         idx = 0;
-        
-        while (item.hasNext()) {
-            test[idx] = item.next().toBytes();
-            testKeck[idx] = keccak256(test[idx]);
-            idx++;
-        }
-        
-        return test[5];
+        RLPReader.RLPItem[] memory itemList = item.toList();
+        return itemList[5].toBytes();
     }
     
     function parseAmount(bytes memory data) internal returns(uint256) {
         uint256 parsedValue;
         assembly {
-    	    parsedValue := mload(add(data, 68))
+    	    parsedValue := mload(add(data, 36))
         }
         return parsedValue;
     }

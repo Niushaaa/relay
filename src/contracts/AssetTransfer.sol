@@ -1,19 +1,20 @@
 pragma solidity 0.7.6;
 
-//import "./relay.sol";
+import "./Relay.sol";
 import "./AssetTransferInterface.sol";
 
 contract AssetTransfer is AssetTransferInterface {
     uint256 initialTokens;
-    address relay;
-
+    Relay relay;
+    uint decimals = 18;
+    
     mapping(address => uint256) balances;
     mapping(address => uint256) locked;
     mapping(address => uint256) minted;
     mapping(address => bool) hasLocked;
     mapping(address => bool) hasMinted;
 
-    constructor(address _relay, uint256 _initialTokens) {
+    constructor(Relay _relay, uint256 _initialTokens) {
         relay = _relay;
         initialTokens = _initialTokens;
     }
@@ -21,6 +22,7 @@ contract AssetTransfer is AssetTransferInterface {
     event Lock(address indexed locker, uint256 amount);
     event Burn(address indexed burner, uint256 amount);
     event FreeMint(address indexed client);
+    event ErrorMint();
 
     function lock(uint256 amount) external override {
         require(amount > 0, "The client should request a non-zero amount for locking.");
@@ -32,16 +34,20 @@ contract AssetTransfer is AssetTransferInterface {
         emit Lock(msg.sender, amount);
     }
 
-    function unlock(bytes32 proof, uint256 amount) external override {
+    function unlock(uint blockNumber, bytes memory rawTransaction, bytes memory encodedPath, bytes memory rlpParentNodes) external override {
+        uint256 amount;
+        amount = relay.parseTransactionAmount(rawTransaction);
         require(amount > 0, "The client should request a non-zero amount for unlocking.");
         require(hasLocked[msg.sender] == true, "The client cannot unlock non-locked assets.");
         require(locked[msg.sender] >= amount, "The client cannot unlock more than the locked amount.");
+        require(relay.checkTxProof(rawTransaction, blockNumber, encodedPath, rlpParentNodes) == true, "The proof should be correct.");
         // It should first verify proof of burn.
-        //verify(proof);
         if (locked[msg.sender] == amount) {
             hasLocked[msg.sender] = false;
         }
+        // The increment for balances[msg.sender] should be equal to the tx amount.
         balances[msg.sender] += locked[msg.sender];
+        // The decrement for locked[msg.sender] should be equal to the tx amount.
         locked[msg.sender] -= amount;
     }
 
@@ -58,13 +64,28 @@ contract AssetTransfer is AssetTransferInterface {
         emit Burn(msg.sender, amount);
     }
 
-    function mint(bytes32 proof, uint256 amount) external override {
-        require(amount > 0, "The client should request a non-zero amount for minting.");
+    function mint(uint blockNumber, bytes memory rawTransaction, bytes memory encodedPath, bytes memory rlpParentNodes) external override {
+        uint256 amount;
+        //relay.salam();
+        amount = relay.parseTransactionAmount(rawTransaction);
+        //amount = amount / (10 ** decimals);
+        //require(amount > 0, "The client should request a non-zero amount for minting.");
+        try relay.checkTxProof(rawTransaction, blockNumber, encodedPath, rlpParentNodes) returns (bool isCorrect) {
+            //require(relay.checkTxProof(rawTransaction, blockNumber, encodedPath, rlpParentNodes) == true, "The proof should be correct.");
+            if (isCorrect) {
+            minted[msg.sender] = amount;
+            hasMinted[msg.sender] = true;        
+            balances[msg.sender] += amount;    
+            }
+        } catch (bytes memory) {
+            emit ErrorMint();
+        }
+        //require(relay.checkTxProof(rawTransaction, blockNumber, encodedPath, rlpParentNodes) == true, "The proof should be correct.");
         // It should first verify the provided lock proof.
         //verify(proof);
-        minted[msg.sender] = amount;
-        hasMinted[msg.sender] = true;        
-        balances[msg.sender] += amount;
+        //minted[msg.sender] = amount;
+        //hasMinted[msg.sender] = true;        
+        //balances[msg.sender] += amount;
 
     }
 
@@ -76,6 +97,10 @@ contract AssetTransfer is AssetTransferInterface {
 
     function freeMint() external {
         balances[msg.sender] = initialTokens;
+        hasLocked[msg.sender] = false;
+        locked[msg.sender] = 0;
+        hasMinted[msg.sender] = false;
+        minted[msg.sender] = 0;
         emit FreeMint(msg.sender);
     }
 

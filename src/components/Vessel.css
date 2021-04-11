@@ -1,0 +1,15 @@
+.outerBox {
+    padding: 5px 0;
+    border: 7px ridge grey;
+    text-align: center;
+    margin: auto;
+    width: 70%;
+}
+.innerBox {
+    padding: 120px 0;
+    border: 4px ridge yellow;
+    border-radius: 20px;
+    text-align: center;
+    margin: auto;
+    width: 97%;
+}

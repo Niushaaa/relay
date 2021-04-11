@@ -1,0 +1,32 @@
+.Connection {
+    display: inline-block;
+}
+.overflowConnection {
+  display: inline-block;
+  /*overflow:hidden;*/ 
+  /*white-space:nowrap;*/ 
+  text-overflow:ellipsis; 
+  width:300px;
+  font-size: xx-small;
+  word-break: break-all;
+}
+.lineLeft {
+  width:33%;
+  float:left;
+  text-align: center;
+  margin: auto;
+}
+.lineRight {
+  width:33%;
+  float:right;
+  text-align: center;
+  margin: auto;
+}
+.box {
+  /*padding: 120px 0;*/
+  /*border: 4px ridge coral;*/
+  /*border-radius: 20px;*/
+  text-align: center;
+  margin: auto;
+  /*width: 97%;*/
+}
