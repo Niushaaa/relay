@@ -6,9 +6,11 @@ var fs = require('fs')
 
 module.exports = async(deployer, network, accounts) => {
 
-  web3_source = new Web3(new Web3.providers.HttpProvider(process.env.REACT_APP_SOURCE_HTTPS));
+  web3_source = new Web3(new Web3.providers.HttpProvider(process.env.TARGET_HTTPS));
   block = await web3_source.eth.getBlock('latest')
   let deployRelay = await deployer.deploy(relay, block.hash, block.number);
+
+  let deployAssetTransfer = await deployer.deploy(assetTransfer, deployRelay.address, process.env.INITIAL_TOKEN)
 
   initialToken = "INITIAL_TOKEN=" + process.env.INITIAL_TOKEN + "\n"
   targetHttps = "TARGET_HTTPS=" + process.env.TARGET_HTTPS + "\n";
@@ -18,12 +20,9 @@ module.exports = async(deployer, network, accounts) => {
   privateKey = "PRIVATE_KEY=" + process.env.PRIVATE_KEY + "\n";
   mnemonic = "MNEMONIC=" + process.env.MNEMONIC + "\n";
   relayAbi = "RELAY_ABI=" + process.env.RELAY_ABI + "\n";
-  relayAddress = "RELAY_ADDRESS=" + deployRelay.address + "\n";
-
-  let deployAssetTransfer = await deployer.deploy(assetTransfer, deployRelay.address, process.env.INITIAL_TOKEN)
-
-  KovanAsset = "REACT_APP_KOVAN_ASSET=" + deployAssetTransfer.address + "\n";
-  RopstenAsset = "REACT_APP_ROPSTEN_ASSET=" + process.env.REACT_APP_ROPSTEN_ASSET + "\n"
+  relayAddress = "RELAY_ADDRESS=" + process.env.RELAY_ADDRESS + "\n";
+  KovanAsset = "REACT_APP_KOVAN_ASSET=" + process.env.REACT_APP_KOVAN_ASSET + "\n";
+  RopstenAsset = "REACT_APP_ROPSTEN_ASSET=" + deployAssetTransfer.address + "\n"
 
   fs.unlink('.env', function (err) {
     if (err) throw err;

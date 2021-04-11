@@ -148,8 +148,8 @@ class Asset extends Component {
                                 console.log("Initial rawTransaction is:")
                                 console.log(rawTransaction)
                                 //rawTransaction = web3.utils.hexToBytes(rawTransaction);
-                                console.log("web3 hexToBytes of rawTransaction is")
-                                console.log(web3.utils.hexToBytes(rawTransaction))
+                                //console.log("web3 hexToBytes of rawTransaction is")
+                                //console.log(web3.utils.hexToBytes(rawTransaction))
                                 //rawTransaction = this.hexToBytes(rawTransaction);
                                 var encodedPath = mintingProof[1]
                                 //encodedPath = web3.utils.hexToBytes(encodedPath);
@@ -160,7 +160,10 @@ class Asset extends Component {
                                 var transactionHash = mintingProof[mintingProof.length-1]
                                 console.log("transactionHash is")
                                 console.log(transactionHash)
-                                var blockNumber = await this.props.getBlockHeight(transactionHash)
+                                var web3_ropsten = new web3('https://ropsten.infura.io/v3/c2f337d22d8b4a849f482d304ddcd963');
+
+                                var blockNumber = await (await web3_ropsten.eth.getTransaction(transactionHash)).blockNumber
+                                // var blockNumber = await this.props.getBlockHeight(transactionHash)
                                 console.log("Block height is")
                                 console.log(blockNumber)
                                 console.log("rlpParentNodes is")
@@ -169,8 +172,8 @@ class Asset extends Component {
                                 console.log(encodedPath)
                                 console.log("rawTransaction is")
                                 console.log(rawTransaction)
-                                console.log("Converting rawTransaction back:")
-                                console.log(web3.utils.bytesToHex(rawTransaction))
+                                //console.log("Converting rawTransaction back:")
+                                //console.log(web3.utils.bytesToHex(rawTransaction))
                                 console.log("typeof rlpParentNodes is:")
                                 console.log(typeof rlpParentNodes)
                                 console.log("typeof encodedPath is:")

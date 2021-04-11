@@ -3,6 +3,7 @@ import Asset from './Asset';
 import Connection from './Connection';
 import Result from './Result';
 import './Vessel.css';
+require('dotenv').config({path:"/home/niusha/Desktop/Relay/relay/.env"})
 
 class Vessel extends Component {
     constructor(props) {
@@ -18,7 +19,7 @@ class Vessel extends Component {
             // string
             //contractAddress1: "0x367b122ec420e84509627e18b251a52B3999D3A9",
             // knows relay
-            contractAddress1: "0x80EAfdDE53f8c8c8c6744111C85A2d3B0701B278",
+            contractAddress1: process.env.REACT_APP_ROPSTEN_ASSET,
             // Kovan
             //contractAddress2: "0x84Bb6B3b39b2906A3fFF05801A98B6f9CE5a62dA",
             // bytes
@@ -26,7 +27,7 @@ class Vessel extends Component {
             // string
             //contractAddress2: "0x718fD163ef56E9F81C3e1E630b2411140F809049"
             // knows relay
-            contractAddress2: "0x2d08aAd8Cf5F8AE6dc37e1690E10226482E9B81e",
+            contractAddress2: process.env.REACT_APP_KOVAN_ASSET,
         };
 
         this.setNetwork = async (network) => {

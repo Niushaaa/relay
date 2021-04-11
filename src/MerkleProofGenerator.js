@@ -45,7 +45,7 @@ class GetProof{
       RLPParentNodes:  rlpParentNodes,
       TransactionsRoot: transactionRoot,
       RawTransaction: rawTransaction,
-      CompleteProof: rawTransaction + ", " + encodedPath + ", " + rlpParentNodes + ", " + transactionRoot
+      CompleteProof: rawTransaction + "," + encodedPath + "," + rlpParentNodes + "," + transactionRoot
     }
   }
   async receiptProof(txHash){

@@ -99,8 +99,10 @@ class App extends Component {
         await this.state.deployedAssetTransfer1.methods.mint(blockNumber, rawTransaction, encodedPath, rlpParentNodes).send({from: this.state.account1, gas: gasAmount})
         console.log("Account 1 unlocked successfully.")  
       } else {
-        const gasAmount = await this.state.deployedAssetTransfer2.methods.mint(blockNumber, rawTransaction, encodedPath, rlpParentNodes).estimateGas({from: this.state.account2});
-        await this.state.deployedAssetTransfer2.methods.mint(blockNumber, rawTransaction, encodedPath, rlpParentNodes).send({from: this.state.account2, gas: gasAmount})
+        console.log("before mint:", rawTransaction);
+        //const gasAmount = await this.state.deployedAssetTransfer2.methods.mint(blockNumber, '0x' + rawTransaction, '0x' + encodedPath, '0x' + rlpParentNodes).estimateGas({from: this.state.account2});
+        //await this.state.deployedAssetTransfer2.methods.mint(blockNumber, rawTransaction, encodedPath, rlpParentNodes).send({from: this.state.account2, gas: gasAmount})
+        await this.state.deployedAssetTransfer2.methods.mint(blockNumber, rawTransaction, encodedPath, rlpParentNodes).send({from: this.state.account2})
         console.log("Account 2 unlocked successfully.")
       }
     }
