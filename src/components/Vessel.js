@@ -39,6 +39,13 @@ class Vessel extends Component {
         this.setOperation = async (op) => {
             this.setState({operation: op})
         }
+        this.shouldPrintProof = async (op) => {
+            if (op == "Locking" || op == "Burning") {
+                this.setState({printProof: true})
+            } else {
+                this.setState({printProof: false})
+            }
+        }
         this.connect = async (networkNo) => {
             if (networkNo == 1) {
                 await this.props.connectToBlockchain(this.state.contractAddress1, 1);
@@ -68,6 +75,7 @@ class Vessel extends Component {
                               minter = {this.props.minter.bind(this)}
                               setVesselState = {this.setVesselState.bind(this)}
                               setOperation = {this.setOperation.bind(this)}
+                              shouldPrintProof = {this.shouldPrintProof.bind(this)}
                 />;
             case 'Result':
                return <Result operation = {this.state.operation}
@@ -79,6 +87,7 @@ class Vessel extends Component {
                               secondConnected = {this.props.secondConnected}
                               transactionHash = {this.props.transactionHash}
                               proof = {this.props.proof}
+                              printProof = {this.state.printProof}
                />
         }
     }

@@ -5,16 +5,34 @@ class Result extends Component {
     constructor(props) {
         super(props);
         this.state = {
-
+            printProof: '',
         };
+        this.shouldPrintProof = async (operation) => {
+            if (operation == "Locking" || operation == "Burning") {
+                return true;
+            } else {
+                return false;
+            }
+        }
     }
+    
 
     render() {
         return (
             <div className="Connection">
                 <h1>The {this.props.operation} was successful!</h1>
-                <h3>Here is your proof.</h3>
-                <h3 className="overflowConnection">{this.props.proof.CompleteProof},{this.props.transactionHash}</h3>
+                {console.log("printProof is")}
+                {console.log(this.props.printProof)}
+                {this.props.printProof ? (
+                    <div>
+                        <h3>Here is your proof.</h3>
+                        <h3 className="overflowConnection">{this.props.proof.CompleteProof},{this.props.transactionHash}</h3>
+                    </div>
+                ) : (
+                    <div>Please continue.</div>
+                )}
+                {/*<h3>Here is your proof.</h3>
+                <h3 className="overflowConnection">{this.props.proof.CompleteProof},{this.props.transactionHash}</h3>*/}
                 <form onSubmit = 
                     {async (event) => {
                         event.preventDefault();    
