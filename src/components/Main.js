@@ -10,7 +10,6 @@ class Main extends Component {
   render() {
     return (
       <div id="content">
-        <h3>Enter account address</h3>
         <form onSubmit = 
           {async (event) => {
             event.preventDefault();
@@ -30,7 +29,7 @@ class Main extends Component {
         <button type="submit" className="btn btn-primary">Get balance</button>
         </form>
         <p>&nbsp;</p>
-        <p>{this.state.balance}</p>
+        
         {/*<h2>Buy Item</h2>
         <table className="table">
         <thead id="itemList">

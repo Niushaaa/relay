@@ -7,6 +7,7 @@ import AssetTransfer from './abis/AssetTransfer3'
 //import AssetTransfer2 from './abis/AssetTransfer2'
 import Addressbar from './components/Addressbar'
 import Connection from './components/Connection'
+//import './components/Connection.css'
 import Main from './components/Main'
 import Vessel from './components/Vessel';
 import MerkleProofGenerator from './MerkleProofGenerator'
@@ -21,8 +22,8 @@ class App extends Component {
       account1: '',
       account2: '',
       loading: '',
-      balance1: null,
-      balance2: null,
+      balance1: 0,
+      balance2: 0,
       firstConnected: false,
       secondConnected: false,
       proof: '',
@@ -252,12 +253,24 @@ class App extends Component {
                 transactionHash = {this.state.transactionHash}
                 proof = {this.state.proof}
         />
-        <h1>Ropsten balance</h1>
-        <Main getBalance = {this.getBalance1}/>
-        <p>{this.state.balance1}</p>
-        <h1>kovan balance</h1>
-        <Main getBalance = {this.getBalance2}/>
-        <p>{this.state.balance2}</p>
+        <br></br>
+        <div className="outerBox">
+        <br></br>
+          <div className="Connection">
+            <h5>Ropsten balance</h5>
+            <Main getBalance = {this.getBalance1}/>
+            <div className="outerBox">
+              <p>{this.state.balance1}</p>
+            </div>
+          </div>
+          <div className="Connection">
+            <h5>kovan balance</h5>
+            <Main getBalance = {this.getBalance2}/>
+            <div className="outerBox">
+              <p>{this.state.balance2}</p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

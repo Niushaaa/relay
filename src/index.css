@@ -11,3 +11,11 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.outerBox {
+  padding: 2px 0;
+  border: 7px solid red;
+  text-align: center;
+  margin: auto;
+  width: 70%;
+}

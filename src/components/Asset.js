@@ -122,7 +122,7 @@ class Asset extends Component {
                             &emsp;
                             &nbsp;
                             <div>
-                                <br></br>
+                                
                                 <input 
                                     id="unlockProof"
                                     type="text"
