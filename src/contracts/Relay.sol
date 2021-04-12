@@ -43,7 +43,7 @@ contract Relay {
     // constructor (Ethash _myEthash, bytes32 _selfHash, uint _height) public {
     constructor (bytes32 _selfHash, uint _height) public {
         // myEthash = _myEthash;
-        k = 6; // finality parameter
+        k = 1; // finality parameter
         lastHeight = _height;
         initialHeight = _height;
         blockHeader memory firstBlockHeader;
@@ -205,11 +205,7 @@ contract Relay {
 
         // call ERC20 token contract to transfer reward tokens to the relayer
     }
-    
-    function salam() public {
-        
-    }
-    
+
     function checkTxProof(bytes memory value, uint blockHeight, bytes memory encodedPath, bytes memory rlpParentNodes) public returns (bool) {
         // add fee for checking transaction
         require(blockHeight < lastHeight - k, "Block is not finilized yet"); // require the block to be finilized 
