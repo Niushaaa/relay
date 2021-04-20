@@ -4,10 +4,10 @@ This project provides a DApp designed to provide experimental cross-chain asset 
 
 ## How to run?
 
-First you have to migrate the contracts to the blockchains. The two networks are specified in the truffle-config.js file, and you can start the deployment using the following command:
-### `truffle migrate --network kovan --network ropsten`
-After the deployment is finished, you can launch the system using the following command:
-### `./run`
+First you have to install the dependencies of the project. Run the following command:
+### `npm install`
+After the install is finished, you can launch the system using the following command:
+### `bash run.sh`
 Finally, you can launch the DApp using:
 ### `npm start`
 
